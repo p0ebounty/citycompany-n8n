@@ -1,0 +1,17 @@
+{
+  "id": "Jd45EegKRNm0g0nD",
+  "name": "dispatch@city...(sendpulse)",
+  "type": "smtp",
+  "data": {
+    "user": "",
+    "password": "",
+    "host": ""
+  },
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "isGlobal": false
+}

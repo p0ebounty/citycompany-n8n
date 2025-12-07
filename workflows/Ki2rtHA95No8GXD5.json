@@ -1,0 +1,840 @@
+{
+  "id": "Ki2rtHA95No8GXD5",
+  "name": "Primary processor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 3
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -912,
+        192
+      ],
+      "id": "3f2ee8ca-0713-443e-8995-e74613e7ad46",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lPsyg1sBbGWfkXo8",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/lPsyg1sBbGWfkXo8",
+          "cachedResultName": "Run call"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "cs_id": "={{ $('task CS').item.json.Id }}"
+          },
+          "matchingColumns": [
+            "Id"
+          ],
+          "schema": [
+            {
+              "id": "cs_id",
+              "displayName": "cs_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1792,
+        272
+      ],
+      "id": "8f35019e-d9fd-4d5c-9ed9-90dc5ec34547",
+      "name": "Sent Data"
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1776,
+        672
+      ],
+      "id": "ffd5068e-625d-4219-8d22-3398886b4f90",
+      "name": "Wait",
+      "webhookId": "2f4573db-0e42-41f0-baba-47a87a71667c"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "e826075c-1c02-497d-8033-264cf00d5b8b",
+      "name": "form"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "oHxaM4NpOa215dXT",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/oHxaM4NpOa215dXT",
+          "cachedResultName": "Check paralelizm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        192
+      ],
+      "id": "b8687f82-f5a0-4086-8bf7-d4df7f2dc20f",
+      "name": "Check paralelizm"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6079aaf0-152f-4822-a696-0bb408233695",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        272
+      ],
+      "id": "94cb5906-f879-4528-8fae-9eee63369f12",
+      "name": "Result paralelizm"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH params AS (\n  SELECT\n    {{ $vars.wh_start }}::int      AS start_hour, \n    {{ $vars.wh_end }}::int      AS end_hour, \n    {{ $vars.check_weekend }}::bool  AS check_weekend\n)\nSELECT l.*\nFROM {{ $vars.ncdbid }}.\"Contacts\" AS l\nCROSS JOIN params p\n-- 1) Нормализуем телефон до цифр\nCROSS JOIN LATERAL (\n  SELECT regexp_replace(coalesce(l.\"Phone\", ''), '\\D', '', 'g') AS digits\n) ph\n-- 2) Пытаемся определить TZ по коду телефона (как было)\nLEFT JOIN LATERAL (\n  SELECT tz.\"TimeZone\" AS tz\n  FROM {{ $vars.ncdbid_data }}.\"Code-TimeZones\" AS tz\n  JOIN LATERAL (VALUES (3),(2),(1)) AS lens(len) ON true\n  WHERE tz.\"Code\" = NULLIF(LEFT(ph.digits, lens.len), '')::bigint\n  ORDER BY lens.len DESC\n  LIMIT 1\n) m ON true\n-- 3) Если у лида задан IANA TZ, проверяем, что он валиден в Postgres\nLEFT JOIN LATERAL (\n  SELECT pgtz.name AS tz\n  FROM pg_timezone_names AS pgtz\n  WHERE pgtz.name = trim(l.\"TimeZone\")\n  LIMIT 1\n) tz_ok ON true\n-- 4) Локальное время: сначала берём tz из Leads.TimeZone (если валидна),\n--    иначе из маппинга по телефону, иначе из дефолта\nCROSS JOIN LATERAL (\n  SELECT (now() AT TIME ZONE COALESCE(tz_ok.tz, m.tz, '{{ $env['GENERIC_TIMEZONE'] }}')) AS local_ts\n) t\nWHERE l.\"CSS\" = 'Waiting'\n  AND l.\"Fix\" = true\n  AND (NOT p.check_weekend OR EXTRACT(DOW FROM t.local_ts) BETWEEN 1 AND 5)\n  AND (\n    EXTRACT(HOUR FROM t.local_ts) >= p.start_hour\n    AND (\n      EXTRACT(HOUR FROM t.local_ts) < p.end_hour\n      OR (\n        EXTRACT(HOUR FROM t.local_ts) = p.end_hour\n        AND EXTRACT(MINUTE FROM t.local_ts) = 0\n      )\n    )\n  )\nLIMIT 3;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -688,
+        192
+      ],
+      "id": "69d3d408-322e-423c-8e4b-aed734096e06",
+      "name": "SELECT",
+      "credentials": {
+        "postgres": {
+          "id": "oZABCHH2vjfMvXoi",
+          "name": "nocodb"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6d080cb8-c719-4569-ac54-32553ea46f33",
+              "name": "Id",
+              "value": "={{ $json.id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "except",
+        "excludeFields": "id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        192
+      ],
+      "id": "cfea87aa-2bc8-4a7e-a0bf-f803472d922b",
+      "name": "change"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1a3c50f2-b95b-4279-b8d1-b7597db565f4",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -464,
+        192
+      ],
+      "id": "3e58a767-47fa-433e-87b3-db275541d454",
+      "name": "output?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $vars.warngroup }}",
+        "text": "=List processing completed ✅\n\n@p0ebounty",
+        "replyMarkup": "inlineKeyboard",
+        "additionalFields": {
+          "appendAttribution": false,
+          "message_thread_id": 88
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -464,
+        496
+      ],
+      "id": "de6ccde4-cfbf-44ff-ad86-54de00403037",
+      "name": "end",
+      "webhookId": "48199868-b398-4b55-87df-ffaa5f874f35",
+      "credentials": {
+        "telegramApi": {
+          "id": "yv48JNV4VmuIREaW",
+          "name": "Citycompany"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "deactivate",
+        "workflowId": {
+          "__rl": true,
+          "value": "Ki2rtHA95No8GXD5",
+          "mode": "list",
+          "cachedResultName": "First RUN (#Ki2rtHA95No8GXD5)"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        496
+      ],
+      "id": "99254511-69d7-404c-a0aa-c3b351c3c0bd",
+      "name": "Deactave RUN",
+      "credentials": {
+        "n8nApi": {
+          "id": "BnnXOoXTFn01aYiA",
+          "name": "local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT (COUNT(*) > 0) AS quantity\n  FROM {{ $vars.ncdbid }}.\"Contacts\" \nWHERE \"CSS\" = 'Waiting';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -912,
+        496
+      ],
+      "id": "27b63d13-19ff-4c16-b807-09271691c84e",
+      "name": "check quantity",
+      "credentials": {
+        "postgres": {
+          "id": "oZABCHH2vjfMvXoi",
+          "name": "nocodb"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "70698c4c-9ca0-4331-9c72-1fd5a8a8958a",
+              "leftValue": "={{ $json.quantity }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -688,
+        496
+      ],
+      "id": "57d3f7a6-089b-4824-b19e-32693c5dfe32",
+      "name": "end?"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        0,
+        272
+      ],
+      "id": "e65c6709-30fd-48e3-b091-38b3b899b5a1",
+      "name": "loop"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6191c4c2-1c3b-4404-abd0-d53409d6b870",
+              "leftValue": "={{ $json.Id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "3606862d-0cef-4ccb-9969-e42baf5d62f4",
+              "leftValue": "={{ $json.Phone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        192
+      ],
+      "id": "613a1d97-e6d2-4353-b190-f4dccaf6b06c",
+      "name": "result"
+    },
+    {
+      "parameters": {
+        "url": "={{$vars.nocodb_url}}api/v2/tables/meyq439syguvqhb/links/cwf8uwz7fraglb6/records/{{ $('loop').item.json.Id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "nocoDbApiToken",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "where",
+              "value": "(Status,eq,Progress)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        272
+      ],
+      "id": "324a5f2d-013e-49c6-8501-5a8757b7e5b6",
+      "name": "check cs",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "tg1sd8Mux2yjJLx7",
+          "name": "NocoDB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "33abca1f-bc79-442c-b477-299dfd3b120c",
+              "leftValue": "={{ $json.pageInfo.totalRows }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        272
+      ],
+      "id": "0207e846-e763-4826-b236-a7173958dc7c",
+      "name": "check result"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "create",
+        "workspaceId": "wqp6q0zt",
+        "projectId": "p0a3eirwme1bmw7",
+        "table": "mkbhjd0aqdl1r1m",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldName": "Contacts_id",
+              "fieldValue": "={{ $('loop').item.json.Id }}"
+            },
+            {
+              "fieldName": "Name",
+              "fieldValue": "={{ $('loop').item.json.Name }}"
+            },
+            {
+              "fieldName": "Phone",
+              "fieldValue": "={{ $('loop').item.json.Phone }}"
+            },
+            {
+              "fieldName": "Email",
+              "fieldValue": "={{ $('loop').item.json.Email }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        1344,
+        272
+      ],
+      "id": "acfe6869-de01-4db8-b8aa-23a90d621e52",
+      "name": "task CS",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "tg1sd8Mux2yjJLx7",
+          "name": "NocoDB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "update",
+        "workspaceId": "wqp6q0zt",
+        "projectId": "p0a3eirwme1bmw7",
+        "table": "meyq439syguvqhb",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldName": "Id",
+              "fieldValue": "={{ $('loop').item.json.Id }}"
+            },
+            {
+              "fieldName": "CSS",
+              "fieldValue": "Progress"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        1568,
+        272
+      ],
+      "id": "21fefe13-6c30-4779-950b-be88a3d9ac9d",
+      "name": "update contact",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "tg1sd8Mux2yjJLx7",
+          "name": "NocoDB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "update",
+        "workspaceId": "wqp6q0zt",
+        "projectId": "p0a3eirwme1bmw7",
+        "table": "meyq439syguvqhb",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldName": "Id",
+              "fieldValue": "={{ $('loop').item.json.Id }}"
+            },
+            {
+              "fieldName": "CSS",
+              "fieldValue": "Done"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        256,
+        672
+      ],
+      "id": "a640f061-0c8c-4c26-9b0b-8de710616e57",
+      "name": "to done",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "tg1sd8Mux2yjJLx7",
+          "name": "NocoDB"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "SELECT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sent Data": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "form": {
+      "main": [
+        [
+          {
+            "node": "loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check paralelizm": {
+      "main": [
+        [
+          {
+            "node": "Result paralelizm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result paralelizm": {
+      "main": [
+        [
+          {
+            "node": "check cs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "to done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SELECT": {
+      "main": [
+        [
+          {
+            "node": "output?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "change": {
+      "main": [
+        [
+          {
+            "node": "loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "output?": {
+      "main": [
+        [
+          {
+            "node": "change",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "check quantity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "end": {
+      "main": [
+        [
+          {
+            "node": "Deactave RUN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check quantity": {
+      "main": [
+        [
+          {
+            "node": "end?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "end?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "end",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "loop": {
+      "main": [
+        [],
+        [
+          {
+            "node": "result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "result": {
+      "main": [
+        [
+          {
+            "node": "Check paralelizm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "to done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check cs": {
+      "main": [
+        [
+          {
+            "node": "check result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check result": {
+      "main": [
+        [
+          {
+            "node": "task CS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "task CS": {
+      "main": [
+        [
+          {
+            "node": "update contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update contact": {
+      "main": [
+        [
+          {
+            "node": "Sent Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "to done": {
+      "main": [
+        [
+          {
+            "node": "loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "agw6jjdVg6yAawFi"
+  },
+  "triggerCount": 1,
+  "versionId": "6b25a71a-bdf5-4a5f-8ec9-f0bf00b7df63",
+  "owner": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "parentFolderId": "v1Un8AcPCflFCY9o",
+  "isArchived": false
+}

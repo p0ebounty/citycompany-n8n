@@ -1,0 +1,16 @@
+{
+  "id": "dpM70buvC5aXXYq3",
+  "name": "dispatch@citycompany.net",
+  "type": "googleDriveOAuth2Api",
+  "data": {
+    "clientId": "",
+    "clientSecret": ""
+  },
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "isGlobal": false
+}

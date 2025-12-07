@@ -1,0 +1,16 @@
+{
+  "id": "tg1sd8Mux2yjJLx7",
+  "name": "NocoDB",
+  "type": "nocoDbApiToken",
+  "data": {
+    "apiToken": "",
+    "host": ""
+  },
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "isGlobal": false
+}

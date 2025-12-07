@@ -1,0 +1,16 @@
+{
+  "id": "6LgJFuu1Bnyv3QUC",
+  "name": "Qdrant account",
+  "type": "qdrantRestApi",
+  "data": {
+    "apiKey": "",
+    "url": ""
+  },
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "isGlobal": false
+}

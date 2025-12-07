@@ -1,0 +1,106 @@
+{
+  "id": "agw6jjdVg6yAawFi",
+  "name": "Error CS",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -176
+      ],
+      "id": "ffb31b5e-5ac3-45a1-918d-7ecfe301f820",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $vars.warngroup }}",
+        "text": "=Error in the call system.\n\nWorkflow name: {{ $('Error Trigger').item.json.workflow.name }}\n\nWorkflow ID: {{ $('Error Trigger').item.json.workflow.id }}\n\nError message: {{ $('Error Trigger').item.json.execution.error.message.replace(/[\\\\`*_{}[\\]()#+\\-.!|<>~]/g, '').substring(0, 400) }}\n\nURL: {{ $('Error Trigger').item.json.execution.url }}\n\n@p0ebounty",
+        "additionalFields": {
+          "appendAttribution": false,
+          "message_thread_id": 2
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        -176
+      ],
+      "id": "177e33dc-5637-4119-9e2f-49f84539146b",
+      "name": "Sent error",
+      "webhookId": "48199868-b398-4b55-87df-ffaa5f874f35",
+      "credentials": {
+        "telegramApi": {
+          "id": "yv48JNV4VmuIREaW",
+          "name": "Citycompany"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "deactivate",
+        "workflowId": {
+          "__rl": true,
+          "value": "Ki2rtHA95No8GXD5",
+          "mode": "list",
+          "cachedResultName": "To CS (#Ki2rtHA95No8GXD5)"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -176
+      ],
+      "id": "342a9162-460d-4267-891f-e40a79adf451",
+      "name": "Deactave RUN",
+      "credentials": {
+        "n8nApi": {
+          "id": "BnnXOoXTFn01aYiA",
+          "name": "local"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sent error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sent error": {
+      "main": [
+        [
+          {
+            "node": "Deactave RUN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "triggerCount": 0,
+  "versionId": "8d4c2dc0-905c-42d1-bb94-b0018b8e179f",
+  "owner": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "parentFolderId": "v1Un8AcPCflFCY9o",
+  "isArchived": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": "klH0prjqGeh22FZZ",
+  "name": "Twilio MagnaQore",
+  "type": "twilioApi",
+  "data": {
+    "authType": "",
+    "accountSid": "",
+    "apiKeySid": "",
+    "apiKeySecret": ""
+  },
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "isGlobal": false
+}

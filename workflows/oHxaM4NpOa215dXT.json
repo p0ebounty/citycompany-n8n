@@ -1,0 +1,174 @@
+{
+  "id": "oHxaM4NpOa215dXT",
+  "name": "Check paralelizm",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*)::integer AS \"count\"\nFROM {{ $vars.ncdbid }}.\"Calls\"\nWHERE \"Status\" = 'Ringing';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -624,
+        16
+      ],
+      "id": "88a9a602-e22f-4ab9-bf2a-0f8c0963726d",
+      "name": "count Ringing",
+      "credentials": {
+        "postgres": {
+          "id": "oZABCHH2vjfMvXoi",
+          "name": "nocodb"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6079aaf0-152f-4822-a696-0bb408233695",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -400,
+        16
+      ],
+      "id": "b24fae15-c226-4b34-a6d9-76c7461e5025",
+      "name": "MAXIMUM PARALLELISM"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f883426e-621c-4a15-84d3-bcda4947c2b2",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        -80
+      ],
+      "id": "59c4a18c-7f64-4494-83d5-ec45e5ff7dab",
+      "name": "ok"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f883426e-621c-4a15-84d3-bcda4947c2b2",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        112
+      ],
+      "id": "0996b083-9a6b-4b93-a628-19c36b7f24ed",
+      "name": "bad"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -864,
+        16
+      ],
+      "id": "41baa2e4-a200-4d2f-8a0f-5ffff1ad390c",
+      "name": "start"
+    }
+  ],
+  "connections": {
+    "count Ringing": {
+      "main": [
+        [
+          {
+            "node": "MAXIMUM PARALLELISM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MAXIMUM PARALLELISM": {
+      "main": [
+        [
+          {
+            "node": "ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "bad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "start": {
+      "main": [
+        [
+          {
+            "node": "count Ringing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "triggerCount": 0,
+  "versionId": "7036f854-b396-40b6-ae8d-1bc047f80f1b",
+  "owner": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "parentFolderId": "rAakqP66NyIafoHi",
+  "isArchived": false
+}

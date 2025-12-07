@@ -1,0 +1,15 @@
+{
+  "id": "ACd9oTUkG6ynHq95",
+  "name": "Perplexity",
+  "type": "perplexityApi",
+  "data": {
+    "apiKey": ""
+  },
+  "ownedBy": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "isGlobal": false
+}

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "0QHLPxYkPeg6VrFG",
+    "key": "twillio_sid",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "GTiNTUz8gUTRVjVR",
+    "key": "nocodb_url_ex",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "5zwtuLSl9vPDw4Zu",
+    "key": "agent_name",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "Zcn1FMUpMt3n3EVt",
+    "key": "nocodb_url",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "xMS57vfGxjdTV5wB",
+    "key": "check_weekend",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "VAVTEh1NCLQe18et",
+    "key": "wh_end",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "8FDzQD5ds1BvCXJp",
+    "key": "wh_start",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "rppxJAoEZ9ybV4i8",
+    "key": "warngroup",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "lQcV4PS4N304tXB0",
+    "key": "vapi_twilio_id",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "z21QQVJhkG0SZl0s",
+    "key": "ncdbid_data",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "EcQZ5m76DX54xpKC",
+    "key": "ncdbid",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "0A35EjKz3naEPfR9",
+    "key": "nc_base_cs",
+    "type": "string",
+    "value": ""
+  },
+  {
+    "id": "ax5V7UhsTSPtypZQ",
+    "key": "nc_base_contacts",
+    "type": "string",
+    "value": ""
+  }
+]

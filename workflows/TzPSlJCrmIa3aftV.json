@@ -1,0 +1,171 @@
+{
+  "id": "TzPSlJCrmIa3aftV",
+  "name": "Comment nocobd",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "comment"
+            },
+            {
+              "name": "base_id"
+            },
+            {
+              "name": "row_id",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        72
+      ],
+      "id": "37df614e-71f8-49a8-b976-deb84fbb2602",
+      "name": "start"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$vars.nocodb_url}}api/v2/meta/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "nocoDbApiToken",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "comment",
+              "value": "={{ $json.comment }}"
+            },
+            {
+              "name": "fk_model_id",
+              "value": "={{ $json.base_id }}"
+            },
+            {
+              "name": "row_id",
+              "value": "={{ $json.row_id.toString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        144
+      ],
+      "id": "18ea4872-82e9-4f41-b147-ec5fd6fe7125",
+      "name": "comment",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "tg1sd8Mux2yjJLx7",
+          "name": "NocoDB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        224,
+        72
+      ],
+      "id": "c90a46b7-aed6-456c-943f-d5313ca8399b",
+      "name": "loop"
+    },
+    {
+      "parameters": {
+        "amount": 0.5
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        144
+      ],
+      "id": "562e5ff4-427f-4380-96f0-bd6fbd824c79",
+      "name": "Wait",
+      "webhookId": "21f7c33f-5e95-4476-a548-84c737272016"
+    }
+  ],
+  "connections": {
+    "start": {
+      "main": [
+        [
+          {
+            "node": "loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "loop": {
+      "main": [
+        [],
+        [
+          {
+            "node": "comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "comment": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "saveDataSuccessExecution": "none",
+    "availableInMCP": false
+  },
+  "triggerCount": 0,
+  "versionId": "2c87bfe4-a39c-4931-bf9b-b2381dc2293e",
+  "owner": {
+    "type": "personal",
+    "projectId": "Lz2EaMLn9ckxxJx0",
+    "projectName": "City Company <dispatch@citycompany.net>",
+    "personalEmail": "dispatch@citycompany.net"
+  },
+  "parentFolderId": "kK192fbu6GJvHsuJ",
+  "isArchived": false
+}
